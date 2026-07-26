@@ -1,7 +1,9 @@
 **Yelp Review Data Analytics Using Big Data Technologies 
 **
+
 **Basic Details 
 **
+
 Title: Yelp Review Data Analytics Using Big Data Technologies 
 Duration: 2 Months 
 Team Size: 7 
