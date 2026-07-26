@@ -5,7 +5,7 @@
 | Field | Details |
 |-------|---------|
 | **Project Title** | Yelp Review Data Analytics Using Big Data Technologies |
-| **Duration** | 2 Months |
+| **Duration** |  |
 | **Team Size** | 7 Members |
 
 ---
@@ -41,7 +41,6 @@ The project aims to uncover valuable business insights, predict business ratings
 5. Analyze user behavior and business performance.
 6. Create interactive Power BI dashboards for visualization.
 7. Generate actionable insights to improve customer satisfaction and business decisions.
-
 ---
 
 # Dataset Description
