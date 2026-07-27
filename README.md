@@ -248,7 +248,34 @@ Yelp Dataset
 
 # Repository Structure
 
-Deciding
+```text
+Yelp_Big_Data/
+├── doc/                        # Documentation & Project Specifications
+│   ├── Yelp_Synopsis_Complete.pdf
+│   └── maheshwari/             # Architecture Screenshots & Silver Layer Steps
+├── data/                       # Configs, Schemas & Sample Datasets
+├── notebooks/                  # Team Member EDA Notebooks
+│   ├── mihir/
+│   ├── nagesh/
+│   ├── saurav/
+│   ├── shraddha/
+│   ├── vishal/
+│   ├── maheshwari/
+│   └── yogesh/
+├── src/                        # Production Source Code & Scripts
+│   ├── ETL/                    # Member ETL Scripts
+│   │   ├── mihir/
+│   │   ├── nagesh/
+│   │   ├── saurav/
+│   │   ├── shraddha/
+│   │   ├── vishal/
+│   │   ├── maheshwari/
+│   │   └── yogesh/
+│   └── BI/                     # BI Dashboards & Scripts
+│       └── shraddha/
+├── presentation/               # Slide Decks & Presentation Assets
+└── reports/                    # Final Project Reports
+```
 
 ---
 
@@ -261,3 +288,4 @@ Deciding
 - Review Summarization using LLMs
 - Real-time Streaming Analytics with Apache Kafka
 - Predictive Business Performance Modeling
+

@@ -1,0 +1,244 @@
+BI Script (For Gold Layer):-
+import sys
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from pyspark.sql.functions import *
+from pyspark.sql.types import FloatType
+
+args = getResolvedOptions(sys.argv, ["JOB_NAME"])
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+job.init(args["JOB_NAME"], args)
+
+# ============================================================
+# BUCKET NAME
+# ============================================================
+BUCKET = "yelpdatasetvita"
+
+# ============================================================
+# 1. READ SILVER FOLDERS SEPARATELY
+# ============================================================
+business_df = spark.read.parquet(f"s3://{BUCKET}/silver_layer/business/")
+review_df   = spark.read.parquet(f"s3://{BUCKET}/silver_layer/review/")
+checkin_df  = spark.read.parquet(f"s3://{BUCKET}/silver_layer/checkin/")
+
+print("business columns:", business_df.columns)
+print("review columns:", review_df.columns)
+print("checkin columns:", checkin_df.columns)
+
+# ============================================================
+# 2. SELECT ONLY CONFIRMED-EXISTING COLUMNS
+#    ("attributes" is NOT a single column here -- it is already
+#    flattened into attributes_wifi, attributes_byob, etc. Skipped.)
+# ============================================================
+business_r = business_df.select(
+    col("business_id"),
+    col("name").alias("business_name"),
+    col("city"),
+    col("state"),
+    col("stars").alias("business_avg_rating"),
+    col("review_count"),
+    col("categories")
+).dropDuplicates(["business_id"])
+
+review_r = review_df.select(
+    col("review_id"),
+    col("user_id"),
+    col("business_id"),
+    col("stars").cast(FloatType()).alias("review_rating"),
+    col("date").alias("review_date"),
+    col("text")
+)
+
+# ============================================================
+# DIM_BUSINESS — Dimension Table
+# ============================================================
+print("\n=== Building DIM_BUSINESS ===")
+
+dim_business = business_r
+
+dim_business.coalesce(1).write.mode("overwrite").parquet(
+    f"s3://{BUCKET}/gold_layer/bi/dim_business/"
+)
+print(f"✓ dim_business: {dim_business.count()} records")
+
+# ============================================================
+# DIM_DATE — Dimension Table (from review dates)
+# ============================================================
+print("\n=== Building DIM_DATE ===")
+
+all_dates = review_r.select(col("review_date").alias("date")).dropDuplicates()
+
+dim_date = all_dates.withColumn(
+    "year", year(col("date"))
+).withColumn(
+    "month", month(col("date"))
+).withColumn(
+    "day", dayofmonth(col("date"))
+).withColumn(
+    "quarter", quarter(col("date"))
+).withColumn(
+    "week", weekofyear(col("date"))
+).withColumn(
+    "day_of_week", dayofweek(col("date"))
+).withColumn(
+    "day_name", when(col("day_of_week") == 1, "Sunday")
+        .when(col("day_of_week") == 2, "Monday")
+        .when(col("day_of_week") == 3, "Tuesday")
+        .when(col("day_of_week") == 4, "Wednesday")
+        .when(col("day_of_week") == 5, "Thursday")
+        .when(col("day_of_week") == 6, "Friday")
+        .when(col("day_of_week") == 7, "Saturday")
+).withColumn(
+    "is_weekend", when(col("day_of_week").isin(1, 7), 1).otherwise(0)
+)
+
+dim_date.coalesce(1).write.mode("overwrite").parquet(
+    f"s3://{BUCKET}/gold_layer/bi/dim_date/"
+)
+print(f"✓ dim_date: {dim_date.count()} records")
+
+# ============================================================
+# CHECKIN AGGREGATION
+# Confirmed actual schema: business_id (string), date (string -- 
+# comma-separated list of checkin timestamps per business),
+# etl_processed_timestamp (pipeline processing time, not a checkin time).
+# We must EXPLODE the comma-separated "date" string into one row
+# per individual checkin timestamp before counting/aggregating.
+# ============================================================
+print("\n=== Aggregating CHECKIN Data ===")
+
+checkin_cols = checkin_df.columns
+print("Detected checkin columns:", checkin_cols)
+
+checkin_exploded = (
+    checkin_df
+    .select("business_id", explode(split(col("date"), ",\\s*")).alias("checkin_raw"))
+    .withColumn("checkin_timestamp", to_timestamp(col("checkin_raw")))
+    .filter(col("checkin_timestamp").isNotNull())
+)
+
+# Total checkins per business (one row per actual checkin event now)
+total_checkins = (
+    checkin_exploded
+    .groupBy("business_id")
+    .count()
+    .withColumnRenamed("count", "total_checkins")
+)
+print(f"✓ total_checkins computed for {total_checkins.count()} businesses")
+
+# Per-business-per-date checkin count (for fact table join)
+checkin_daily = (
+    checkin_exploded
+    .withColumn("checkin_date", to_date(col("checkin_timestamp")))
+    .groupBy("business_id", "checkin_date")
+    .count()
+    .withColumnRenamed("count", "checkin_count")
+)
+print("✓ Daily checkin aggregation built from exploded timestamps")
+
+# ============================================================
+# FACT_REVIEW_CHECKIN — Fact Table
+# ============================================================
+print("\n=== Building FACT_REVIEW_CHECKIN ===")
+
+fact_table = review_r.join(
+    checkin_daily,
+    on=[
+        review_r.business_id == checkin_daily.business_id,
+        to_date(review_r.review_date) == checkin_daily.checkin_date
+    ],
+    how="left"
+).select(
+    review_r.review_id,
+    review_r.business_id,
+    review_r.user_id,
+    review_r.review_rating,
+    review_r.review_date,
+    length(review_r.text).alias("text_length"),
+    coalesce(checkin_daily.checkin_count, lit(0)).alias("checkin_count_on_review_date")
+)
+
+fact_table.coalesce(2).write.mode("overwrite").parquet(
+    f"s3://{BUCKET}/gold_layer/bi/fact_review_checkin/"
+)
+print(f"✓ fact_review_checkin: {fact_table.count()} records")
+
+# ============================================================
+# BUSINESS_SCORES — Pre-computed Metrics
+# ============================================================
+print("\n=== Computing BUSINESS_SCORES ===")
+
+fact_for_scoring = business_r.select(
+    "business_id",
+    col("business_avg_rating").alias("rating"),
+    "review_count"
+)
+
+max_review_count = fact_for_scoring.agg(max("review_count")).collect()[0][0] or 1
+max_checkin_count = total_checkins.agg(max("total_checkins")).collect()[0][0] or 1
+
+business_scores = (
+    fact_for_scoring
+    .join(total_checkins, "business_id", "left")
+    .withColumn("rating_score", (col("rating") / 5.0) * 100)
+    .withColumn("review_score", (col("review_count") / max_review_count) * 100)
+    .withColumn("checkin_score", (coalesce(col("total_checkins"), lit(0)) / max_checkin_count) * 100)
+    .withColumn(
+        "health_score",
+        (col("rating_score") * 0.50) +
+        (col("review_score") * 0.30) +
+        (col("checkin_score") * 0.20)
+    )
+    .withColumn(
+        "health_status",
+        when(col("health_score") >= 80, "Excellent")
+        .when(col("health_score") >= 60, "Good")
+        .when(col("health_score") >= 40, "Average")
+        .otherwise("Needs Improvement")
+    )
+    .withColumn(
+        "engagement_score",
+        (col("review_score") * 0.60) + (col("checkin_score") * 0.40)
+    )
+    .withColumn(
+        "engagement_status",
+        when(col("engagement_score") >= 70, "Highly Engaged")
+        .when(col("engagement_score") >= 40, "Moderately Engaged")
+        .otherwise("Low Engagement")
+    )
+)
+
+business_scores_final = business_scores.select(
+    "business_id",
+    "rating_score",
+    "review_score",
+    "checkin_score",
+    "health_score",
+    "health_status",
+    "engagement_score",
+    "engagement_status"
+)
+
+business_scores_final.coalesce(1).write.mode("overwrite").parquet(
+    f"s3://{BUCKET}/gold_layer/bi/business_scores/"
+)
+print(f"✓ business_scores: {business_scores_final.count()} records")
+
+# ============================================================
+# Summary
+# ============================================================
+print("\n" + "="*60)
+print("✅ GOLD_BI JOB COMPLETED SUCCESSFULLY")
+print("="*60)
+print(f"dim_business: {dim_business.count()}")
+print(f"dim_date: {dim_date.count()}")
+print(f"fact_review_checkin: {fact_table.count()}")
+print(f"business_scores: {business_scores_final.count()}")
+
+job.commit()
