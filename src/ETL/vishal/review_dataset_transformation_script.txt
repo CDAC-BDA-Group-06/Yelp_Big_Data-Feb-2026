@@ -1,0 +1,209 @@
+import sys
+
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from awsglue.job import Job
+
+from pyspark.context import SparkContext
+
+from pyspark.sql.functions import (
+    col,
+    trim,
+    to_timestamp,
+    current_timestamp,
+    coalesce,
+    lit,
+    to_date,
+    date_format,
+    round
+)
+
+from pyspark.sql.types import (
+    IntegerType,
+    DoubleType
+)
+
+
+
+# -----------------------------------------------------
+# Initialize Glue Job
+# -----------------------------------------------------
+
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])
+
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+
+job = Job(glueContext)
+job.init(args['JOB_NAME'], args)
+
+print("========== GLUE ETL JOB STARTED ==========")
+
+# -----------------------------------------------------
+# Configuration
+# -----------------------------------------------------
+
+DATABASE_NAME = "yelp_db"
+TABLE_NAME = "yelp_academic_dataset_review_json"
+
+OUTPUT_PATH = "s3://yelpdatasetbda/review_silver/"
+
+# -----------------------------------------------------
+# Read Data from Glue Data Catalog
+# -----------------------------------------------------
+
+print("Reading data from Glue Data Catalog...")
+
+dynamic_frame = glueContext.create_dynamic_frame.from_catalog(
+    database=DATABASE_NAME,
+    table_name=TABLE_NAME
+)
+
+df = dynamic_frame.toDF()
+
+initial_count = df.count()
+
+print(f"Initial Record Count : {initial_count}")
+
+# -----------------------------------------------------
+# Remove Duplicate Reviews
+# -----------------------------------------------------
+
+df = df.dropDuplicates(["review_id"])
+
+# -----------------------------------------------------
+# Remove Records with Null Primary Keys
+# -----------------------------------------------------
+
+df = df.filter(
+    col("review_id").isNotNull() &
+    col("business_id").isNotNull() &
+    col("user_id").isNotNull()
+)
+
+# -----------------------------------------------------
+# Trim String Columns
+# -----------------------------------------------------
+
+string_columns = [
+    "review_id",
+    "business_id",
+    "user_id",
+    "text"
+]
+
+for column in string_columns:
+    df = df.withColumn(column, trim(col(column)))
+
+# -----------------------------------------------------
+# Convert Data Types
+# -----------------------------------------------------
+
+df = (
+    df
+    # Convert date column to timestamp
+    .withColumn(
+        "date",
+        col("date").cast("timestamp")
+    )
+
+    # Extract time into a separate column
+    .withColumn(
+        "time_stamp",
+        date_format(col("date"), "HH:mm:ss")
+    )
+
+    # Keep only the date
+    .withColumn(
+        "date",
+        to_date(col("date"))
+    )
+
+    # Convert stars to double
+    .withColumn(
+        "stars",
+        col("stars").cast("double")
+    )
+)
+
+# Convert useful, funny and cool to integer
+# Replace nulls with 0
+
+for c in ["useful", "funny", "cool"]:
+
+    df = df.withColumn(
+        c,
+        coalesce(
+            col(c).cast("int"),
+            lit(0)
+        )
+    )
+
+# -----------------------------------------------------
+# Handle Null Values
+# -----------------------------------------------------
+
+df = df.fillna({
+    "text": ""
+})
+
+# -----------------------------------------------------
+# Add ETL Timestamp
+# -----------------------------------------------------
+
+df = df.withColumn(
+    "etl_load_time",
+    current_timestamp()
+)
+
+# -----------------------------------------------------
+# Calculate Final Count
+# -----------------------------------------------------
+
+final_count = df.count()
+
+print(f"Final Record Count   : {final_count}")
+print(f"Records Removed      : {initial_count - final_count}")
+
+
+# -----------------------------------------------------
+# Calculate Weighted Score
+# -----------------------------------------------------
+
+df = df.withColumn(
+    "weighted_score",
+    round(
+        (
+            0.7 * (col("stars") / 5.0)
+            +
+            0.3 * (
+                (col("useful") + col("funny") + col("cool")) / 30.0
+            )
+        ) * 10
+    ).cast("int")
+)
+
+
+# -----------------------------------------------------
+# Write as Snappy Parquet
+# -----------------------------------------------------
+
+print("Writing Parquet files to S3...")
+
+(
+    df.write
+      .mode("overwrite")
+      .option("compression", "snappy")
+      .parquet(OUTPUT_PATH)
+)
+
+print("Parquet files successfully written.")
+
+# -----------------------------------------------------
+# Commit Glue Job
+# -----------------------------------------------------
+
+job.commit()
+
+print("========== GLUE ETL JOB COMPLETED ==========")

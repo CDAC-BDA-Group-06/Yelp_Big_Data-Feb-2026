@@ -1,0 +1,200 @@
+Rag Script:-
+import sys
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from pyspark.sql.functions import *
+from pyspark.sql.types import StringType
+from pyspark.sql.window import Window
+
+args = getResolvedOptions(sys.argv, ["JOB_NAME"])
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+job.init(args["JOB_NAME"], args)
+
+# ============================================================
+# BUCKET NAME
+# ============================================================
+BUCKET = "yelpdatasetvita"
+
+# ============================================================
+# 1. READ SILVER FOLDERS SEPARATELY
+# ============================================================
+business_df = spark.read.parquet(f"s3://{BUCKET}/silver_layer/business/")
+review_df   = spark.read.parquet(f"s3://{BUCKET}/silver_layer/review/")
+
+print("business columns:", business_df.columns)
+print("review columns:", review_df.columns)
+
+# ============================================================
+# 2. SELECT ONLY CONFIRMED-EXISTING COLUMNS
+#    (NOTE: "attributes" does NOT exist as a single column in this
+#    dataset -- it is already flattened into attributes_wifi,
+#    attributes_byob, attributes_hastv, etc. We skip it here.
+#    If you want to include specific attribute flags in the RAG
+#    document text, add them explicitly below.)
+# ============================================================
+business_r = business_df.select(
+    col("business_id"),
+    col("name").alias("business_name"),
+    col("city"),
+    col("state"),
+    col("stars").alias("business_rating"),
+    col("review_count").alias("total_reviews"),
+    col("categories")
+).dropDuplicates(["business_id"])
+
+review_r = review_df.select(
+    col("review_id"),
+    col("user_id"),
+    col("business_id"),
+    col("stars"),
+    col("text"),
+    col("date")
+)
+
+# ============================================================
+# 3. SENTIMENT LABELING (simple rule-based)
+# ============================================================
+print("\n=== Adding Sentiment Labels ===")
+
+review_with_sentiment = review_r.withColumn(
+    "sentiment",
+    when(col("stars") >= 4, "Positive")
+    .when(col("stars") == 3, "Neutral")
+    .otherwise("Negative")
+)
+
+# ============================================================
+# 4. TOP 10 REVIEWS PER BUSINESS (Window Function)
+# ============================================================
+print("\n=== Selecting Top Reviews per Business ===")
+
+review_window = Window.partitionBy("business_id").orderBy(col("date").desc())
+
+top_reviews_df = (
+    review_with_sentiment
+    .withColumn("row_num", row_number().over(review_window))
+    .filter(col("row_num") <= 10)
+    .drop("row_num")
+)
+
+print(f"Top reviews selected: {top_reviews_df.count()} records")
+
+# ============================================================
+# 5. AGGREGATE TOP REVIEWS INTO ARRAY PER BUSINESS
+# ============================================================
+print("\n=== Building RAG Documents ===")
+
+reviews_agg = (
+    top_reviews_df
+    .groupBy("business_id")
+    .agg(
+        collect_list(
+            struct(
+                col("review_id"),
+                col("stars"),
+                col("text"),
+                col("sentiment")
+            )
+        ).alias("reviews_array"),
+        max("date").alias("latest_review_date"),
+        avg("stars").alias("avg_review_rating"),
+        count("review_id").alias("review_count_in_top10")
+    )
+)
+
+# ============================================================
+# 6. JOIN BUSINESS INFO + AGGREGATED REVIEWS
+# ============================================================
+doc_df = business_r.join(reviews_agg, "business_id", "left")
+
+# ============================================================
+# 7. BUILD DOCUMENT TEXT (UDF)
+# ============================================================
+def build_document(business_name, categories, city, state, rating, total_reviews, reviews_array):
+    """Build denormalized document for RAG"""
+    doc = f"""
+BUSINESS INFORMATION
+====================
+Name: {business_name}
+Category: {categories if categories else "N/A"}
+Location: {city}, {state}
+Rating: {rating}/5 ({total_reviews} total reviews)
+
+TOP REVIEWS
+===========
+"""
+    if reviews_array:
+        for i, review in enumerate(reviews_array, 1):
+            doc += f"""
+Review {i}:
+Rating: {review['stars']}/5 [{review['sentiment']}]
+Text: {review['text']}
+---
+"""
+    doc += "\n"
+    return doc
+
+build_doc_udf = udf(build_document, StringType())
+
+rag_docs = (
+    doc_df
+    .withColumn(
+        "document_text",
+        build_doc_udf(
+            col("business_name"),
+            col("categories"),
+            col("city"),
+            col("state"),
+            col("business_rating"),
+            col("total_reviews"),
+            col("reviews_array")
+        )
+    )
+    .select(
+        "business_id",
+        col("business_name").alias("business_name_metadata"),
+        col("city").alias("city_metadata"),
+        col("state").alias("state_metadata"),
+        col("categories").alias("category_metadata"),
+        col("business_rating").alias("rating_metadata"),
+        "document_text",
+        "latest_review_date",
+        col("review_count_in_top10").alias("review_count_in_doc")
+    )
+)
+
+print(f"RAG documents created: {rag_docs.count()} records")
+
+# ============================================================
+# 8. WRITE OUTPUT (parquet + jsonl)
+# ============================================================
+rag_docs.coalesce(2).write.mode("overwrite").parquet(
+    f"s3://{BUCKET}/gold_layer/rag/documents/"
+)
+print("✓ RAG documents written to S3 (parquet)")
+
+rag_docs.coalesce(2).write.mode("overwrite").format("json").save(
+    f"s3://{BUCKET}/gold_layer/rag/documents_jsonl/"
+)
+print("✓ RAG documents also written as JSONL")
+
+# ============================================================
+# Summary
+# ============================================================
+print("\n" + "="*60)
+print("✅ GOLD_RAG JOB COMPLETED SUCCESSFULLY")
+print("="*60)
+print(f"Total RAG documents: {rag_docs.count()}")
+
+job.commit()
+
+
+
+
+
