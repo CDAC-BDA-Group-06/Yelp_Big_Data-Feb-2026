@@ -1,56 +1,264 @@
 # Yelp Review Data Analytics Using Big Data Technologies
 
-## 📌 Overview
-This project analyzes the **Yelp Open Dataset 2024** using Big Data technologies to uncover insights from customer reviews, ratings, and business information.  
-The goal is to perform **sentiment analysis, rating prediction, and business performance evaluation** to help businesses make data-driven decisions.
+## Basic Details
 
-## 👥 Team
-- Nagesh Khichede  
-- Saurav Makde  
-- Shraddha Patil  
-- Mihir Zope  
-- Maheshwari Phalke  
-- Vishal Dewanjee  
-- Yogesh Thakre  
+| Field | Details |
+|-------|---------|
+| **Project Title** | Yelp Review Data Analytics Using Big Data Technologies |
+| **Duration** |  |
+| **Team Size** | 7 Members |
 
-## 🎯 Objectives
-- Analyze customer reviews, ratings, and business data.  
-- Perform **Exploratory Data Analysis (EDA)** to identify trends.  
-- Conduct **sentiment analysis** on customer opinions.  
-- Build **ML models** to predict ratings/review sentiment.  
-- Study user behavior and business performance.  
-- Create **interactive Power BI dashboards**.  
-- Generate actionable insights for customer satisfaction.  
+---
 
-## 📂 Dataset
-The project uses the **Yelp Complete Open Dataset 2024**, including:
-- `business.json` (~118 MB, 150K records)  
-- `review.json` (~5.3 GB, 7M records)  
-- `user.json` (~3.2 GB, 2M records)  
-- `checkin.json` (~290 MB, 132K records)  
-- `tip.json` (~250 MB, 909K records)  
+# Team Members
 
-Data is provided in **JSON format** with both structured and textual fields.
+- Nagesh Khichade
+- Saurav Makde
+- Shraddha Patil
+- Mihir Zope
+- Maheshwari Phalke
+- Vishal Dewanjee
+- Yogesh Thakre
 
-## 🛠️ Tools & Technologies
-- **AWS S3** – Data storage  
-- **AWS EMR + PySpark** – Distributed data processing  
-- **AWS Glue** – ETL & data cataloging  
-- **Amazon Athena** – SQL queries on S3  
-- **Power BI** – Interactive dashboards  
-- **Git & GitHub** – Version control & collaboration  
-- **GitHub Actions** – CI/CD automation  
-- **Terraform / CloudFormation** – Infrastructure as Code  
+---
 
-## 📊 Architecture
-1. **Data Storage** → Raw Yelp data stored in S3  
-2. **Processing** → EMR + PySpark for cleaning & ML pipelines  
-3. **ETL** → AWS Glue jobs for integration & cataloging  
-4. **Analytics** → Athena queries + BI dashboards  
-5. **Visualization** → Power BI for insights  
+# Problem Statement
 
-## 🚀 Deliverables
-- Cleaned & processed Yelp dataset  
-- ML models for sentiment/rating prediction  
-- Power BI dashboards with interactive insights  
-- Documentation & reports  
+Online businesses receive millions of customer reviews every day, making it difficult to manually analyze customer feedback and identify the factors affecting customer satisfaction and business performance.
+
+This project leverages the **Yelp Complete Open Dataset 2024** to analyze customer reviews, business information, user behavior, and ratings using **Big Data Analytics, Machine Learning, and Business Intelligence** techniques.
+
+The project aims to uncover valuable business insights, predict business ratings, understand customer sentiment, and help businesses make data-driven decisions that improve customer experience and overall performance.
+
+---
+
+# Project Objectives
+
+1. Analyze customer reviews, ratings, and business information.
+2. Perform Exploratory Data Analysis (EDA) to identify trends and patterns.
+3. Conduct sentiment analysis to understand customer opinions.
+4. Build Machine Learning models to predict business ratings or review sentiment.
+5. Analyze user behavior and business performance.
+6. Create interactive Power BI dashboards for visualization.
+7. Generate actionable insights to improve customer satisfaction and business decisions.
+---
+
+# Dataset Description
+
+The project uses the **Yelp Complete Open Dataset 2024**, which contains multiple datasets representing businesses, users, reviews, check-ins, and tips.
+
+## Dataset Summary
+
+| Dataset | Records | Columns | Approx. Size |
+|----------|---------|---------|--------------|
+| `business.json` | 150,346 | 14 | ~118 MB |
+| `review.json` | 6,990,280 | 9 | ~5.3 GB |
+| `user.json` | 1,987,897 | 22 | ~3.2 GB |
+| `checkin.json` | 131,930 | 2 | ~290 MB |
+| `tip.json` | 908,915 | 5 | ~250 MB |
+
+---
+
+# Dataset Details
+
+## Business Information
+
+Contains information about businesses, including:
+
+- Business ID
+- Business Name
+- Address
+- City
+- State
+- Categories
+- Operating Hours
+- Average Star Rating
+- Total Review Count
+
+---
+
+## Review Data
+
+Contains customer reviews with:
+
+- Review ID
+- User ID
+- Business ID
+- Star Rating
+- Review Text
+- Review Date
+- Useful Votes
+- Funny Votes
+- Cool Votes
+
+---
+
+## User Data
+
+Contains information about Yelp users, including:
+
+- User ID
+- Review Count
+- Average Rating Given
+- Friends
+- Fans
+- Compliments
+- Account Activity
+
+---
+
+## Check-in Data
+
+Stores customer check-in timestamps to analyze:
+
+- Business popularity
+- Visit frequency
+- Customer activity patterns
+
+---
+
+## Tip Data
+
+Contains short customer tips including:
+
+- User ID
+- Business ID
+- Tip Text
+- Date
+- Number of Likes
+
+---
+
+## Data Format
+
+The Yelp dataset is provided in **JSON** format and contains both:
+
+### Structured Data
+
+- Business Information
+- User Information
+- Ratings
+- Check-ins
+
+### Unstructured Data
+
+- Customer Reviews
+- Tips
+
+This makes the dataset suitable for:
+
+- Big Data Analytics
+- Machine Learning
+- Natural Language Processing (NLP)
+- Business Intelligence
+- Data Visualization
+
+---
+
+# Tools & Technologies Used
+
+| Technology | Purpose |
+|------------|---------|
+| **Amazon S3** | Stores raw and processed Yelp datasets in a scalable cloud storage environment. |
+| **Amazon EMR** | Distributed processing of large datasets using Apache Spark. |
+| **PySpark** | Large-scale data transformation, cleaning, feature engineering, and machine learning. |
+| **Jupyter Notebook** | Interactive development, EDA, visualization, and experimentation. |
+| **AWS Glue** | Serverless ETL pipelines and Data Catalog management. |
+| **Amazon Athena** | Query data stored in Amazon S3 using standard SQL. |
+| **ODBC/JDBC** | Connect Athena with Power BI and Python applications. |
+| **Power BI/Tableu** | Interactive dashboards and business intelligence reporting. |
+| **Git & GitHub** | Version control, collaboration, and project management. |
+| **GitHub Actions** | CI/CD automation for uploading scripts to S3, triggering Glue jobs, crawlers, and workflow orchestration. |
+| **Terraform / AWS CloudFormation** | Infrastructure as Code (IaC) for provisioning AWS resources such as S3, Glue, IAM, and networking components. |
+
+---
+
+# Project Workflow
+
+```text
+Yelp Dataset
+      │
+      ▼
+ Amazon S3 (Raw Layer)
+      │
+      ▼
+ AWS Glue Crawler
+      │
+      ▼
+ AWS Glue ETL Jobs
+      │
+      ▼
+ Amazon S3 (Silver Layer)
+      │
+      ▼
+ AWS Glue Transformations
+      │
+      ▼
+ Amazon S3 (Gold Layer)
+      │
+      ▼
+ AWS Glue Catalog
+      │
+      ▼
+ Amazon Athena
+      │
+      ▼
+ Power BI Dashboards
+```
+
+---
+
+# Expected Outcomes
+
+- Centralized cloud-based data lake architecture
+- Automated ETL pipeline using AWS Glue
+- Distributed data processing using PySpark on Amazon EMR
+- Interactive SQL analytics through Amazon Athena
+- Business intelligence dashboards in Power BI/ Tableu
+- Sentiment analysis of customer reviews
+- Rating prediction using Machine Learning
+- Customer behavior analysis
+- Business performance analytics
+- Actionable recommendations for business owners
+
+---
+
+# Key Features
+
+- Large-scale distributed data processing
+- Cloud-native architecture on AWS
+- Automated ETL pipelines
+- Data warehouse-ready Gold layer
+- Machine Learning integration
+- NLP-based sentiment analysis
+- Interactive BI dashboards
+- Infrastructure as Code (Terraform/CloudFormation)
+- CI/CD automation using GitHub Actions
+
+---
+
+# Architecture Diagram
+
+> **Insert the architecture diagram here.**
+
+<img width="886" height="512" alt="image" src="https://github.com/user-attachments/assets/f5de5b0a-2628-44e2-85d5-39d22c36c155" />
+
+
+---
+
+# Repository Structure
+
+Deciding
+
+---
+
+# Future Enhancements
+
+- Recommendation System
+- Fake Review Detection
+- Aspect-Based Sentiment Analysis (ABSA)
+- Topic Modeling using BERTopic/LDA
+- Review Summarization using LLMs
+- Real-time Streaming Analytics with Apache Kafka
+- Predictive Business Performance Modeling
+
