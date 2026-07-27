@@ -248,7 +248,23 @@ Yelp Dataset
 
 # Repository Structure
 
-Deciding
+```text
+Yelp_Big_Data/
+├── doc/                        # Documentation & Project Specifications
+│   └── Yelp_Synopsis_Complete.pdf
+├── data/                       # Configs, Schemas & Sample Datasets
+│   └── sample_schemas/
+├── notebooks/                  # EDA & Experimental Jupyter Notebooks
+│   ├── EDA_On_Business.ipynb
+│   └── Review_EDA.ipynb
+├── src/                        # Production Source Code & Scripts
+│   ├── ingestion/              # Ingestion Scripts (e.g. Bronze Layer Shell Scripts)
+│   ├── etl/                    # PySpark / AWS Glue ETL Scripts (Silver & Gold Layers)
+│   ├── ml/                     # Machine Learning Models & Pipelines
+│   └── bi/                     # Athena & BI Scripts / SQL Queries
+├── presentation/               # Slide Decks & Presentation Assets
+└── reports/                    # Final Project Reports
+```
 
 ---
 
