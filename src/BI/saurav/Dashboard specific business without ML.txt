@@ -1,0 +1,65 @@
+Dashboard Using Only the Yelp Dataset
+
+Visualization	                                    Dataset	                                                     Columns                                                              Visualization                              
+_______________________________________________________________________________________________________________________________
+Average Rating	                                  review.json                                                    stars                                                                     cards
+Total Reviews	                                  review.json                                                    review_id                                                              cards
+Total Check-ins	                                 checkin.json                                       	     date                                                                       cards
+Business Rating	                         business.json                                               stars                                                                        cards
+Business Information	                      business.json                            name, address, phone, categories, hours                                      Multi-row Card
+Rating Trend	                                    review.json                              	 business_id,date, stars                                                        Line Chart
+Rating Distribution	                          review.json	                                  stars, business_id                                                         Horizontal Bar Chart
+Recent Reviews                            	review.json                            date, stars, text,review_id,business_id,user_id                                   Table
+Review Trend	                                   review.json                                         date, review_id                                                             Line Chart
+Check-in Trend	                                 checkin.json	                                            date                                                                        Line Chart
+Top Reviewers	                           review.json + user.json                business_id,review_id,stars,text,date,user_id ,name                  Horizontal Bar Chart           
+
+_______________________________________________________________________________________________________________________________________
+
+# for scores we need dax formulas and charts we can use  is Gauge , KPI Card, Table
+
+
+Business Rating Score                       business.json        business_id, stars                                                          DIVIDE(AVERAGE(Business[stars]),5) * 100
+
+Review Score                                      review.json         business_id, review_id                       DIVIDE(COUNT(Review[review_id]),MAXX(ALL(Business),                              CALCULATE(COUNT(Review[review_id])))) * 100
+
+
+Check-in Score                                   checkin.json          business_id, date                                  DIVIDE(SUM(Checkin[Checkin Count]), MAX(Checkin[Checkin Count])) * 100
+
+Customer Satisfaction Score         business.json             stars                                                                               Average Rating × 20
+
+______________________________________________________________________________________________________________________________________
+
+# Final Business Health Score             
+ Business Health Score = ([Rating Score] * 0.50 +[Review Score] * 0.30 +[Checkin Score] * 0.20 )
+
+
+#Health Categories
+Business Health Status = SWITCH(TRUE(),[Business Health Score] >= 80, "Excellent", [Business Health Score] >= 60, "Good",[Business Health Score] >= 40, "Average", "Needs Improvement")
+___________________________________________________________________________________________________________________________________________
+
+#Customer Engagement Score
+Customer Engagement Score =([Review Score] * 0.60 +[Checkin Score] * 0.40)
+
+#Engagement Status
+Customer Engagement Status =
+SWITCH(
+    TRUE(),
+    [Customer Engagement Score] >= 80, "High",
+    [Customer Engagement Score] >= 60, "Moderate",
+    [Customer Engagement Score] >= 40, "Low",
+    "Very Low"
+)
+  chart used:- KPI cards Clustered Column Chart
+_____________________________________________________________________________________________________________________________________________
+
+
+For a polished Power BI dashboard focused on a single business,
+
+KPI Cards: Business Health Score, Customer Satisfaction Score, Customer Engagement Score, Popularity Score
+Gauges: Business Health Score, Customer Satisfaction Score
+Line Charts: Review Trend, Rating Trend
+Bar Charts: Monthly Reviews, Monthly Check-ins, Tips by Month
+Scatter Plot: Reviews vs. Check-ins (or Reviews vs. Tips)
+Donut Chart: Open vs. Closed (if comparing multiple businesses)
+Detail Table: Business name, city, category, stars, reviews, health score, engagement score
