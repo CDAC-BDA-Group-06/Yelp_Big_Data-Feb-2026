@@ -1,5 +1,10 @@
-# Terraform Backend Configuration
+# Terraform Cloud Backend configuration for CDAC BDA Group 06
 terraform {
-  # Direct runner state execution
-}
+  cloud {
+    organization = "cdac-bda-group06"
 
+    workspaces {
+      name = "yelp-bigdata-workspace"
+    }
+  }
+}
