@@ -4,7 +4,7 @@ terraform {
     organization = "cdac-bda-group06"
 
     workspaces {
-      name = "yelp-bigdata-workspace"
+      name = "main-yelp-bigdata-workspace"
     }
   }
 }
