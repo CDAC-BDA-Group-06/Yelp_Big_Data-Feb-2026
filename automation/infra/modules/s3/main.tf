@@ -1,27 +1,12 @@
 # ─────────────────────────────────────────────
 # BRONZE BUCKET  (raw JSON from Kaggle)
+# NOTE: Encryption config and Public Access Block are managed by AWS Academy
+# default account policy. LabRole denies s3:GetEncryptionConfiguration and
+# s3:GetBucketPublicAccessBlock so these resources cannot be managed by Terraform.
 # ─────────────────────────────────────────────
 resource "aws_s3_bucket" "bronze" {
   bucket        = var.bronze_bucket_name
   force_destroy = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "bronze" {
-  bucket = aws_s3_bucket.bronze.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "bronze" {
-  bucket                  = aws_s3_bucket.bronze.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
 }
 
 # ─────────────────────────────────────────────
@@ -32,24 +17,6 @@ resource "aws_s3_bucket" "silver" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "silver" {
-  bucket = aws_s3_bucket.silver.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "silver" {
-  bucket                  = aws_s3_bucket.silver.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 # ─────────────────────────────────────────────
 # GOLD BUCKET  (analytics BI/ML/RAG Parquet from Glue)
 # ─────────────────────────────────────────────
@@ -58,22 +25,5 @@ resource "aws_s3_bucket" "gold" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "gold" {
-  bucket = aws_s3_bucket.gold.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "gold" {
-  bucket                  = aws_s3_bucket.gold.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
 
 
