@@ -6,13 +6,17 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   terraform-plan:
     name: "Terraform Plan"
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./infra
+        working-directory: ./automation/infra
 
     steps:
       - name: Checkout
@@ -40,3 +44,4 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -no-color
+

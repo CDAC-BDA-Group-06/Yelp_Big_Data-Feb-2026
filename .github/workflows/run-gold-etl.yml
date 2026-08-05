@@ -19,6 +19,9 @@ jobs:
   silver_to_gold:
     name: "Run Silver to Gold PySpark ETL Job"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./automation
 
     steps:
       - name: Checkout Code
@@ -47,3 +50,4 @@ jobs:
             "yelp-bigdata_silver_to_gold" \
             "yelp-bigdata_gold_crawler" \
             "${{ github.event.inputs.gold_bucket || 'yelp-gold-analytics-us-east-1' }}"
+
