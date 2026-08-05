@@ -56,18 +56,18 @@ jobs:
 
       - name: Clean Restricted S3 Resources From State
         run: |
-          terraform state rm module.s3.aws_s3_bucket_public_access_block.bronze || true
-          terraform state rm module.s3.aws_s3_bucket_public_access_block.silver || true
-          terraform state rm module.s3.aws_s3_bucket_public_access_block.gold || true
-          terraform state rm module.s3.aws_s3_bucket_server_side_encryption_configuration.bronze || true
-          terraform state rm module.s3.aws_s3_bucket_server_side_encryption_configuration.silver || true
-          terraform state rm module.s3.aws_s3_bucket_server_side_encryption_configuration.gold || true
+          terraform state rm -force module.s3.aws_s3_bucket_public_access_block.bronze || true
+          terraform state rm -force module.s3.aws_s3_bucket_public_access_block.silver || true
+          terraform state rm -force module.s3.aws_s3_bucket_public_access_block.gold || true
+          terraform state rm -force module.s3.aws_s3_bucket_server_side_encryption_configuration.bronze || true
+          terraform state rm -force module.s3.aws_s3_bucket_server_side_encryption_configuration.silver || true
+          terraform state rm -force module.s3.aws_s3_bucket_server_side_encryption_configuration.gold || true
 
       - name: Terraform Validate
         run: terraform validate
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -refresh=false
 
       - name: Capture Terraform Outputs
         id: tf_outputs
