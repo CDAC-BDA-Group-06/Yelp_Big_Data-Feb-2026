@@ -1,7 +1,7 @@
 name: "Deploy & Ingest Pipeline"
 
 # ──────────────────────────────────────────────────────────────────────────
-# Trigger: every push to main OR Nagesh  OR  manual button click in GitHub Actions UI
+# Trigger: every push to main  OR  manual button click in GitHub Actions UI
 # ──────────────────────────────────────────────────────────────────────────
 on:
   push:
@@ -9,10 +9,6 @@ on:
       - main
       - Nagesh
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   # ────────────────────────────────────────────────────────────────────────
@@ -23,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./automation/infra
+        working-directory: ./infra
 
     outputs:
       bronze_bucket:    ${{ steps.tf_outputs.outputs.bronze_bucket }}
@@ -76,8 +72,8 @@ jobs:
         run: |
           BRONZE_BUCKET="${{ steps.tf_outputs.outputs.bronze_bucket }}"
           echo "Uploading Glue scripts to s3://${BRONZE_BUCKET}/scripts/"
-          aws s3 cp automation/glue/scripts/bronze_to_silver.py s3://${BRONZE_BUCKET}/scripts/bronze_to_silver.py
-          aws s3 cp automation/glue/scripts/silver_to_gold.py   s3://${BRONZE_BUCKET}/scripts/silver_to_gold.py
+          aws s3 cp glue/scripts/bronze_to_silver.py s3://${BRONZE_BUCKET}/scripts/bronze_to_silver.py
+          aws s3 cp glue/scripts/silver_to_gold.py   s3://${BRONZE_BUCKET}/scripts/silver_to_gold.py
           echo "All Glue ETL scripts uploaded successfully."
 
   # ────────────────────────────────────────────────────────────────────────
@@ -88,9 +84,6 @@ jobs:
     name: "2 · Kaggle Ingest → S3 Bronze → Glue"
     runs-on: ubuntu-latest
     needs: terraform
-    defaults:
-      run:
-        working-directory: ./automation
 
     steps:
       - name: Checkout
@@ -152,9 +145,6 @@ jobs:
     name: "3 · Silver to Gold ETL → Gold S3 Verification"
     runs-on: ubuntu-latest
     needs: [terraform, ingest]
-    defaults:
-      run:
-        working-directory: ./automation
 
     steps:
       - name: Checkout Code
@@ -185,5 +175,4 @@ jobs:
             "${{ needs.terraform.outputs.gold_bucket    || 'yelp-gold-analytics-us-east-1' }}" \
             "${{ needs.terraform.outputs.silver_crawler || 'yelp-bigdata_silver_crawler' }}" \
             "${{ needs.terraform.outputs.glue_workflow  || 'yelp-bigdata_etl_workflow' }}"
-
 
