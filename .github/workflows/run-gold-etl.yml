@@ -20,6 +20,10 @@ jobs:
     name: "Run Silver to Gold PySpark ETL Job"
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./automation
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
