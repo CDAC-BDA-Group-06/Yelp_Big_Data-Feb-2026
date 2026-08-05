@@ -204,9 +204,10 @@ resource "aws_glue_workflow" "etl_workflow" {
 
 # Trigger 1: start Bronze Crawler on demand (ingest.py calls start-workflow-run)
 resource "aws_glue_trigger" "start_crawler" {
-  name          = "${var.project_name}_trigger_start_crawler"
-  type          = "ON_DEMAND"
-  workflow_name = aws_glue_workflow.etl_workflow.name
+  name              = "${var.project_name}_trigger_start_crawler"
+  type              = "ON_DEMAND"
+  workflow_name     = aws_glue_workflow.etl_workflow.name
+  start_on_creation = true
 
   actions {
     crawler_name = aws_glue_crawler.bronze_crawler.name
@@ -215,9 +216,10 @@ resource "aws_glue_trigger" "start_crawler" {
 
 # Trigger 2: after Bronze Crawler succeeds → run bronze_to_silver job
 resource "aws_glue_trigger" "start_bronze_to_silver" {
-  name          = "${var.project_name}_trigger_bronze_to_silver"
-  type          = "CONDITIONAL"
-  workflow_name = aws_glue_workflow.etl_workflow.name
+  name              = "${var.project_name}_trigger_bronze_to_silver"
+  type              = "CONDITIONAL"
+  workflow_name     = aws_glue_workflow.etl_workflow.name
+  start_on_creation = true
 
   predicate {
     conditions {
@@ -234,9 +236,10 @@ resource "aws_glue_trigger" "start_bronze_to_silver" {
 # Trigger 3: after bronze_to_silver job succeeds → run Silver Crawler
 # This is the key fix: cataloguing updated Silver schema BEFORE silver_to_gold runs.
 resource "aws_glue_trigger" "start_silver_crawler" {
-  name          = "${var.project_name}_trigger_silver_crawler"
-  type          = "CONDITIONAL"
-  workflow_name = aws_glue_workflow.etl_workflow.name
+  name              = "${var.project_name}_trigger_silver_crawler"
+  type              = "CONDITIONAL"
+  workflow_name     = aws_glue_workflow.etl_workflow.name
+  start_on_creation = true
 
   predicate {
     conditions {
@@ -252,9 +255,10 @@ resource "aws_glue_trigger" "start_silver_crawler" {
 
 # Trigger 4: after Silver Crawler succeeds → run silver_to_gold job
 resource "aws_glue_trigger" "start_silver_to_gold" {
-  name          = "${var.project_name}_trigger_silver_to_gold"
-  type          = "CONDITIONAL"
-  workflow_name = aws_glue_workflow.etl_workflow.name
+  name              = "${var.project_name}_trigger_silver_to_gold"
+  type              = "CONDITIONAL"
+  workflow_name     = aws_glue_workflow.etl_workflow.name
+  start_on_creation = true
 
   predicate {
     conditions {

@@ -176,9 +176,15 @@ def trigger_glue_workflow(workflow_name):
         run_id = resp.get("RunId")
         logger.info(f"Glue Workflow started — RunId: {run_id}")
     except ClientError as e:
-        logger.error(f"Glue trigger failed: {e}")
-        logger.error(traceback.format_exc())
-        sys.exit(1)
+        logger.warning(f"start_workflow_run failed ({e}). Attempting to start starting trigger directly...")
+        try:
+            trigger_name = "yelp-bigdata_trigger_start_crawler"
+            glue.start_trigger(Name=trigger_name)
+            logger.info(f"Successfully started Glue Trigger directly: {trigger_name}")
+        except Exception as trigger_err:
+            logger.error(f"Glue trigger fallback failed: {trigger_err}")
+            logger.error(traceback.format_exc())
+            sys.exit(1)
 
 # ──────────────────────────────────────────────────────────────
 def cleanup():
