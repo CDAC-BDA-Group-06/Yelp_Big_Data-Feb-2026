@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - main
-      - Nagesh
+      - dev
   workflow_dispatch:
 
 jobs:
