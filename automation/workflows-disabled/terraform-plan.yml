@@ -4,8 +4,7 @@ name: "Terraform Plan (PR Check)"
 on:
   pull_request:
     branches:
-      -main
-      -nagesh
+      - main
 
 jobs:
   terraform-plan:
