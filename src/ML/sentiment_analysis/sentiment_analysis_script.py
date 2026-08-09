@@ -13,7 +13,7 @@ Original file is located at
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \
-    .appName("Yelp Sentiment Analysis") \
+    .appName("Yelp Sentiment Analysis") 
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("WARN")
@@ -294,6 +294,4 @@ predictions.write.mode("overwrite").parquet(
 )
 
 
-#Commented out IPython magic to ensure Python compatibility.
-%%pyspark default.spark
 
