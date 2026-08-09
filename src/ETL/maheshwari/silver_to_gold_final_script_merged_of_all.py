@@ -607,6 +607,9 @@ try:
 except Exception as e:
     print(f"\n!!!!!!!!!! GOLD JOB FAILED: {e} !!!!!!!!!!")
     raise
-finally:
+else:
     job.commit()
-    print("========== GLUE CONSOLIDATED SILVER -> GOLD (BI + ML + RAG) JOB FINISHED ==========")
+    print(
+        "========== GLUE CONSOLIDATED SILVER -> GOLD "
+        "(BI + ML + RAG) JOB FINISHED =========="
+    )
