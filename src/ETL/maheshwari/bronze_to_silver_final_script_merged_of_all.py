@@ -275,18 +275,21 @@ for TABLE_NAME in TABLES:
 # CHECKIN
 # ======================================================
 
-elif dataset_name == "checkin":
+    # ======================================================
+    # CHECKIN
+    # ======================================================
 
-    # Remove null business IDs
-    df = df.filter(
-        col("business_id").isNotNull()
-    )
+    elif dataset_name == "checkin":
 
-    # If date is an array, create one row per check-in timestamp
-    if "date" in df.columns:
+        # Remove records without business ID or date
+        df = df.filter(
+            col("business_id").isNotNull()
+            & col("date").isNotNull()
+        )
 
         date_type = df.schema["date"].dataType
 
+        # Handle an existing array of timestamps
         if isinstance(date_type, ArrayType):
 
             df = df.withColumn(
@@ -294,55 +297,75 @@ elif dataset_name == "checkin":
                 explode(col("date"))
             )
 
+        # Handle Yelp's comma-separated timestamp string
+        else:
+
+            df = df.withColumn(
+                "date",
+                explode(
+                    split(
+                        col("date").cast("string"),
+                        r",\s*"
+                    )
+                )
+            )
+
+        # Convert every extracted value into a timestamp
         df = df.withColumn(
             "date",
-            to_timestamp(col("date"))
+            to_timestamp(
+                trim(col("date").cast("string")),
+                "yyyy-MM-dd HH:mm:ss"
+            )
         )
 
-    # Remove duplicate check-in events
-    df = df.dropDuplicates(
-        ["business_id", "date"]
-    )
-
-# ======================================================
-# TIP
-# ======================================================
-
-elif dataset_name == "tip":
-
-    df = (
-        df
-        .withColumn(
-            "date",
-            to_timestamp(col("date"))
+        # Remove invalid timestamps
+        df = df.filter(
+            col("date").isNotNull()
         )
-        .withColumn(
-            "compliment_count",
-            col("compliment_count").cast(IntegerType())
+
+        # Keep unique checkin events
+        df = df.dropDuplicates(
+            ["business_id", "date"]
         )
-    )
-
-    df = df.filter(
-        col("user_id").isNotNull()
-    )
-
-    df = df.filter(
-        col("business_id").isNotNull()
-    )
-
-    df = df.dropDuplicates()
-
-    df = df.fillna({"text": ""})
-
-    df = df.withColumn(
-        "text_length",
-        length(col("text"))
-    )
-
-
 
     # ======================================================
-    # ETL TIMESTAMP
+    # TIP
+    # ======================================================
+
+    elif dataset_name == "tip":
+
+        df = (
+            df
+            .withColumn(
+                "date",
+                to_timestamp(col("date"))
+            )
+            .withColumn(
+                "compliment_count",
+                col("compliment_count").cast(IntegerType())
+            )
+        )
+
+        df = df.filter(
+            col("user_id").isNotNull()
+        )
+
+        df = df.filter(
+            col("business_id").isNotNull()
+        )
+
+        df = df.dropDuplicates()
+
+        df = df.fillna({"text": ""})
+
+        df = df.withColumn(
+            "text_length",
+            length(col("text"))
+        )
+
+    # ======================================================
+    # ETL TIMESTAMP — COMMON FOR EVERY DATASET
     # ======================================================
 
     df = df.withColumn(
@@ -351,7 +374,7 @@ elif dataset_name == "tip":
     )
 
     # ======================================================
-    # WRITE SILVER
+    # WRITE SILVER — COMMON FOR EVERY DATASET
     # ======================================================
 
     final_count = df.count()
@@ -366,6 +389,7 @@ elif dataset_name == "tip":
     )
 
     log(f"Written : {OUTPUT_PATH}")
+
 
 # ==========================================================
 # JOB COMMIT
