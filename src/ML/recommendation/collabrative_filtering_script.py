@@ -8,32 +8,87 @@ Original file is located at
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, when, count
 from pyspark.ml.feature import StringIndexer
 from pyspark.ml.recommendation import ALS
 from pyspark.ml.evaluation import RegressionEvaluator
+
+
+# ============================================================
+# 1. CREATE SPARK SESSION
+# ============================================================
+
+spark = SparkSession.builder \
+    .appName("Yelp Collaborative Filtering") \
+    .getOrCreate()
+
+
+# ============================================================
+# 2. READ DATA FROM S3
+# ============================================================
 
 path = "s3://yelpgoldlayerdata/yelp data/gold_layer/ml/recommendation_features/"
 
 df = spark.read.parquet(path)
 
+
+# ============================================================
+# 3. DATA INFORMATION
+# ============================================================
+
 df.printSchema()
 
-print("Number of Rows :", df.count())
+print("Number of Rows:", df.count())
 
-print("Columns :")
+print("Columns:")
 print(df.columns)
 
-from pyspark.sql.functions import when, count
+
+# ============================================================
+# 4. CHECK NULL VALUES
+# ============================================================
+
+print("Null Values:")
 
 df.select([
-    count(when(col(c).isNull(), c)).alias(c)
+    count(
+        when(col(c).isNull(), c)
+    ).alias(c)
     for c in df.columns
 ]).show()
 
+
+# ============================================================
+# 5. REMOVE DUPLICATES
+# ============================================================
+
 df = df.dropDuplicates()
 
-from pyspark.ml.feature import StringIndexer
+print("Rows after removing duplicates:", df.count())
+
+
+# ============================================================
+# 6. REMOVE RECORDS WITH NULL VALUES
+# ============================================================
+
+df = df.dropna(
+    subset=["user_id", "business_id", "stars"]
+)
+
+
+# ============================================================
+# 7. CONVERT STAR RATING TO DOUBLE
+# ============================================================
+
+df = df.withColumn(
+    "stars",
+    col("stars").cast("double")
+)
+
+
+# ============================================================
+# 8. INDEX USER IDs
+# ============================================================
 
 user_indexer = StringIndexer(
     inputCol="user_id",
@@ -44,6 +99,11 @@ user_model = user_indexer.fit(df)
 
 df = user_model.transform(df)
 
+
+# ============================================================
+# 9. INDEX BUSINESS IDs
+# ============================================================
+
 business_indexer = StringIndexer(
     inputCol="business_id",
     outputCol="businessIndex"
@@ -53,7 +113,10 @@ business_model = business_indexer.fit(df)
 
 df = business_model.transform(df)
 
-from pyspark.sql.functions import col
+
+# ============================================================
+# 10. CONVERT INDEXES TO INTEGER
+# ============================================================
 
 df = df.withColumn(
     "userIndex",
@@ -65,42 +128,98 @@ df = df.withColumn(
     col("businessIndex").cast("integer")
 )
 
+
+# ============================================================
+# 11. CREATE RATINGS DATAFRAME
+# ============================================================
+
 ratings = df.select(
     col("userIndex"),
     col("businessIndex"),
     col("stars").alias("rating")
 )
 
+
+print("Ratings Schema:")
 ratings.printSchema()
 
+print("Sample Ratings:")
 ratings.show(10, truncate=False)
 
-train, test = ratings.randomSplit([0.8, 0.2], seed=42)
 
-print("Training Rows :", train.count())
-print("Testing Rows :", test.count())
+# ============================================================
+# 12. TRAIN-TEST SPLIT
+# ============================================================
 
-from pyspark.ml.recommendation import ALS
+train, test = ratings.randomSplit(
+    [0.8, 0.2],
+    seed=42
+)
+
+print("Training Rows:", train.count())
+print("Testing Rows:", test.count())
+
+
+# ============================================================
+# 13. CREATE ALS MODEL
+# ============================================================
 
 als = ALS(
     userCol="userIndex",
     itemCol="businessIndex",
     ratingCol="rating",
+
+    # Remove predictions for users/items
+    # that were not present during training
     coldStartStrategy="drop",
-    nonnegative=True,
+
+    # Ratings are explicit
     implicitPrefs=False,
+
+    # Latent factors
     rank=20,
+
+    # Number of iterations
     maxIter=15,
-    regParam=0.1
+
+    # Regularization
+    regParam=0.1,
+
+    # Keep latent factors non-negative
+    nonnegative=True,
+
+    seed=42
 )
+
+
+# ============================================================
+# 14. TRAIN MODEL
+# ============================================================
+
+print("Training ALS model...")
 
 model = als.fit(train)
 
+print("Model training completed.")
+
+
+# ============================================================
+# 15. MAKE PREDICTIONS
+# ============================================================
+
 predictions = model.transform(test)
 
-predictions.show(10, truncate=False)
+print("Predictions:")
 
-from pyspark.ml.evaluation import RegressionEvaluator
+predictions.show(
+    10,
+    truncate=False
+)
+
+
+# ============================================================
+# 16. EVALUATE MODEL USING RMSE
+# ============================================================
 
 evaluator = RegressionEvaluator(
     metricName="rmse",
@@ -110,4 +229,13 @@ evaluator = RegressionEvaluator(
 
 rmse = evaluator.evaluate(predictions)
 
+print("====================================")
 print("RMSE:", rmse)
+print("====================================")
+
+
+# ============================================================
+# 17. STOP SPARK
+# ============================================================
+
+spark.stop()
