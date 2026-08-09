@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1KfOC70TeqhGeVijjeqq_ekJv8sXYm9mB
 """
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
 from pyspark.sql import SparkSession
@@ -18,12 +18,12 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("WARN")
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 print(spark.version)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
 file_path = "s3://yelpdatasetvita/gold_layer/ml/sentiment_features/part-00000-c3f61153-e06b-4f01-88ea-69e9a133a765-c000.snappy.parquet"
@@ -34,7 +34,7 @@ df.printSchema()
 
 df.show(10, truncate=False)
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
 from pyspark.sql.functions import col
@@ -47,7 +47,7 @@ df = df.select(
 
 df.show(5)
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 df = df.na.drop(
     subset=[
@@ -57,12 +57,12 @@ df = df.na.drop(
 )
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 print(df.count())
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.sql.functions import lower, regexp_replace, trim
 
@@ -92,7 +92,7 @@ df = df.withColumn(
 )
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 df.select(
     "review_text",
@@ -100,7 +100,7 @@ df.select(
 ).show(5, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.feature import StringIndexer
 
@@ -114,7 +114,7 @@ labelModel = labelIndexer.fit(df)
 df = labelModel.transform(df)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.feature import Tokenizer
 
@@ -128,7 +128,7 @@ df = tokenizer.transform(df)
 df.select("clean_text", "words").show(5, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.feature import StopWordsRemover
 
@@ -142,7 +142,7 @@ df = remover.transform(df)
 df.select("filtered_words").show(5, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.feature import HashingTF
 
@@ -157,7 +157,7 @@ df = hashingTF.transform(df)
 df.select("rawFeatures").show(5, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.feature import IDF
 
@@ -173,7 +173,7 @@ df = idfModel.transform(df)
 df.select("features").show(5, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 train_df, test_df = df.randomSplit([0.8, 0.2], seed=42)
 
@@ -181,7 +181,7 @@ print("Training Records:", train_df.count())
 print("Testing Records :", test_df.count())
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.classification import LogisticRegression
 
@@ -194,7 +194,7 @@ lr = LogisticRegression(
 lr_model = lr.fit(train_df)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 predictions = lr_model.transform(test_df)
 
@@ -205,7 +205,7 @@ predictions.select(
 ).show(10, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
@@ -220,7 +220,7 @@ accuracy = evaluator.evaluate(predictions)
 
 print("Accuracy =", accuracy)
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 train_df, test_df = df.randomSplit([0.8, 0.2], seed=42)
 
@@ -228,7 +228,7 @@ print("Training Records:", train_df.count())
 print("Testing Records :", test_df.count())
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
 from pyspark.ml.classification import LogisticRegression
@@ -243,7 +243,7 @@ lr = LogisticRegression(
 lr_model = lr.fit(train_df)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 predictions = lr_model.transform(test_df)
 
@@ -256,7 +256,7 @@ predictions.select(
 ).show(10, truncate=False)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
@@ -269,7 +269,7 @@ accuracy = MulticlassClassificationEvaluator(
 print("Accuracy:", accuracy)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 f1 = MulticlassClassificationEvaluator(
     labelCol="label",
@@ -280,20 +280,20 @@ f1 = MulticlassClassificationEvaluator(
 print("F1 Score:", f1)
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 lr_model.write().overwrite().save(
     "s3://yelpdatasetvita/gold_layer/sentiment_analysis_Model/"
 )
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 predictions.write.mode("overwrite").parquet(
     "s3://yelpdatasetvita/gold_layer/sentiment_analysis_output/"
 )
 
 
-Commented out IPython magic to ensure Python compatibility.
+#Commented out IPython magic to ensure Python compatibility.
 %%pyspark default.spark
 
