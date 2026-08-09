@@ -374,36 +374,3 @@ elif dataset_name == "tip":
 job.commit()
 
 log("ALL SILVER DATASETS PROCESSED SUCCESSFULLY")
-    # ======================================================
-    # ETL TIMESTAMP
-    # ======================================================
-
-    df = df.withColumn(
-        "etl_processed_timestamp",
-        current_timestamp()
-    )
-
-    # ======================================================
-    # WRITE SILVER
-    # ======================================================
-
-    final_count = df.count()
-
-    log(f"Final Rows : {final_count:,}")
-
-    (
-        df.write
-        .mode("overwrite")
-        .option("compression", "snappy")
-        .parquet(OUTPUT_PATH)
-    )
-
-    log(f"Written : {OUTPUT_PATH}")
-
-# ==========================================================
-# JOB COMMIT
-# ==========================================================
-
-job.commit()
-
-log("ALL SILVER DATASETS PROCESSED SUCCESSFULLY")
