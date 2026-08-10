@@ -209,7 +209,7 @@ This makes the dataset suitable for:
                                      ▼
                          ┌─────────────────────────┐
                          │        AWS CLOUD        │
-                         │ S3 / Glue / EMR / Athena│
+                         │ S3 / Glue │
                          └────────────┬────────────┘
                                       │
                                       ▼
@@ -222,7 +222,7 @@ This makes the dataset suitable for:
                                       │
                                       ▼
                          ┌─────────────────────────┐
-                         │      AWS GLUE / EMR     │
+                         │      AWS GLUE     │
                          │ Cleaning + Transformation│
                          └────────────┬────────────┘
                                       │
@@ -235,7 +235,7 @@ This makes the dataset suitable for:
                                       │
                                       ▼
                          ┌─────────────────────────┐
-                         │      AWS GLUE / EMR     │
+                         │      AWS GLUE           │
                          │ Joins + Aggregations    │
                          │ Feature Engineering     │
                          └────────────┬────────────┘
