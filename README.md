@@ -237,13 +237,49 @@ This makes the dataset suitable for:
 ---
 
 # Transformations
-Bronze → Silver: Flatten nested JSON → Remove nulls & duplicates 
-                  Explode comma-separated check-in timestamps 
-                  Parse & cast timestamps → Parse `yelping_since` → Data type standardization
-
-Silver → Gold: Join datasets → Group-by aggregations → Extract day-of-week & hour-of-day 
-               Review-text feature engineering → 
-               ML & RAG feature extraction → Store analytics-ready datasets in S3 Gold
+        ┌───────────────┐
+        │ Bronze Layer  │
+        │    S3 Raw     │
+        └───────┬───────┘
+                │
+                ▼
+        ┌───────────────┐
+        │   AWS Glue    │
+        │ Silver ETL    │
+        └───────┬───────┘
+                │
+                ▼
+ ┌─────────────────────────────┐
+ │ Flatten JSON • Clean Nulls  │
+ │ Deduplicate • Explode       │
+ │ Timestamps • Type Casting   │
+ └──────────────┬──────────────┘
+                │
+                ▼
+        ┌───────────────┐
+        │ Silver Layer  │
+        │   S3 Parquet  │
+        └───────┬───────┘
+                │
+                ▼
+        ┌───────────────┐
+        │   AWS Glue    │
+        │  Gold ETL     │
+        └───────┬───────┘
+                │
+                ▼
+ ┌─────────────────────────────┐
+ │ Joins • Aggregations        │
+ │ Day/Hour Features • NLP    │
+ │ ML & RAG Feature Engineering│
+ └──────────────┬──────────────┘
+                │
+                ▼
+        ┌───────────────┐
+        │  Gold Layer   │
+        │ Analytics/ML  │
+        │     /RAG      │
+        └───────────────┘
 
 # Expected Outcomes
 
