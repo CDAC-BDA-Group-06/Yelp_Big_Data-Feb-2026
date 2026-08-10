@@ -5,7 +5,6 @@
 | Field | Details |
 |-------|---------|
 | **Project Title** | Yelp Review Data Analytics Using Big Data Technologies |
-| **Duration** |  |
 | **Team Size** | 7 Members |
 
 ---
@@ -37,7 +36,7 @@ The project aims to uncover valuable business insights, predict business ratings
 1. Analyze customer reviews, ratings, and business information.
 2. Perform Exploratory Data Analysis (EDA) to identify trends and patterns.
 3. Conduct sentiment analysis to understand customer opinions.
-4. Build Machine Learning models to predict business ratings or review sentiment.
+4. Predict business ratings or review sentiment.
 5. Analyze user behavior and business performance.
 6. Create interactive Power BI dashboards for visualization.
 7. Generate actionable insights to improve customer satisfaction and business decisions.
@@ -169,41 +168,59 @@ This makes the dataset suitable for:
 | **Power BI/Tableu** | Interactive dashboards and business intelligence reporting. |
 | **Git & GitHub** | Version control, collaboration, and project management. |
 | **GitHub Actions** | CI/CD automation for uploading scripts to S3, triggering Glue jobs, crawlers, and workflow orchestration. |
-| **Terraform / AWS CloudFormation** | Infrastructure as Code (IaC) for provisioning AWS resources such as S3, Glue, IAM, and networking components. |
+| **Terraform** | Infrastructure as Code (IaC) for provisioning AWS resources such as S3, Glue, IAM, and networking components. |
 
 ---
 
 # Project Workflow
 
 ```text
-Yelp Dataset
-      │
-      ▼
- Amazon S3 (Raw Layer)
-      │
-      ▼
- AWS Glue Crawler
-      │
-      ▼
- AWS Glue ETL Jobs
-      │
-      ▼
- Amazon S3 (Silver Layer)
-      │
-      ▼
- AWS Glue Transformations
-      │
-      ▼
- Amazon S3 (Gold Layer)
-      │
-      ▼
- AWS Glue Catalog
-      │
-      ▼
- Amazon Athena
-      │
-      ▼
- Power BI Dashboards
+                         ┌──────────────────────┐
+                         │    GitHub Repository  │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │ GitHub Actions Runner│
+                         └──────────┬───────────┘
+                                    │
+                      ┌─────────────┴─────────────┐
+                      │                           │
+                      ▼                           ▼
+             ┌────────────────┐          ┌────────────────┐
+             │    Terraform   │          │ Automation /   │
+             │   CI/CD        │          │ Deployment     │
+             └───────┬────────┘          └───────┬────────┘
+                     │                           │
+                     └─────────────┬─────────────┘
+                                   ▼
+                         ┌──────────────────────┐
+                         │        AWS           │
+                         │ S3 / Glue / Athena   │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │     S3 Data Lake     │
+                         │                      │
+                         │ Bronze → Silver →    │
+                         │ Gold                 │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │    Glue Data Catalog │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │       Athena         │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │     Power BI         │
+                         └──────────────────────┘
 ```
 
 ---
@@ -214,7 +231,7 @@ Yelp Dataset
 - Automated ETL pipeline using AWS Glue
 - Distributed data processing using PySpark on Amazon EMR
 - Interactive SQL analytics through Amazon Athena
-- Business intelligence dashboards in Power BI/ Tableu
+- Business intelligence dashboards in Power BI
 - Sentiment analysis of customer reviews
 - Rating prediction using Machine Learning
 - Customer behavior analysis
@@ -230,7 +247,6 @@ Yelp Dataset
 - Automated ETL pipelines
 - Data warehouse-ready Gold layer
 - Machine Learning integration
-- NLP-based sentiment analysis
 - Interactive BI dashboards
 - Infrastructure as Code (Terraform/CloudFormation)
 - CI/CD automation using GitHub Actions
@@ -240,42 +256,10 @@ Yelp Dataset
 # Architecture Diagram
 
 > **Insert the architecture diagram here.**
+<img width="1600" height="1249" alt="Project_Architecture" src="https://github.com/user-attachments/assets/768f299c-43c5-433f-ad1f-b6bf2062e41c" />
 
-<img width="886" height="512" alt="image" src="https://github.com/user-attachments/assets/f5de5b0a-2628-44e2-85d5-39d22c36c155" />
 
-
----
-
-# Repository Structure
-
-```text
-Yelp_Big_Data/
-├── doc/                        # Documentation & Project Specifications
-│   ├── Yelp_Synopsis_Complete.pdf
-│   └── maheshwari/             # Architecture Screenshots & Silver Layer Steps
-├── data/                       # Configs, Schemas & Sample Datasets
-├── notebooks/                  # Team Member EDA Notebooks
-│   ├── mihir/
-│   ├── nagesh/
-│   ├── saurav/
-│   ├── shraddha/
-│   ├── vishal/
-│   ├── maheshwari/
-│   └── yogesh/
-├── src/                        # Production Source Code & Scripts
-│   ├── ETL/                    # Member ETL Scripts
-│   │   ├── mihir/
-│   │   ├── nagesh/
-│   │   ├── saurav/
-│   │   ├── shraddha/
-│   │   ├── vishal/
-│   │   ├── maheshwari/
-│   │   └── yogesh/
-│   └── BI/                     # BI Dashboards & Scripts
-│       └── shraddha/
-├── presentation/               # Slide Decks & Presentation Assets
-└── reports/                    # Final Project Reports
-```
+---PP
 
 ---
 
@@ -283,9 +267,7 @@ Yelp_Big_Data/
 
 - Recommendation System
 - Fake Review Detection
-- Aspect-Based Sentiment Analysis (ABSA)
 - Topic Modeling using BERTopic/LDA
 - Review Summarization using LLMs
-- Real-time Streaming Analytics with Apache Kafka
 - Predictive Business Performance Modeling
 
