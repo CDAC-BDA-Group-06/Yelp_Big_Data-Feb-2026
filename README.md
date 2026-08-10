@@ -280,8 +280,8 @@ Silver → Gold:  Join datasets → Group-by aggregations →
 ---
 
 # Architecture Diagram
+<img width="1600" height="1249" alt="WhatsApp Image 2026-08-10 at 01 42 37" src="https://github.com/user-attachments/assets/778bee00-fd6b-498c-bcb8-967bf84a7540" />
 
-> Add the project architecture diagram here.
 
 ---
 
