@@ -159,6 +159,7 @@ This makes the dataset suitable for:
 | Technology | Purpose |
 |------------|---------|
 | **Amazon S3** | Stores raw and processed Yelp datasets in a scalable cloud storage environment. |
+| **GitHub Actions** | Automates Yelp data ingestion and deployment workflows using a GitHub-hosted runner. |
 | **Amazon EMR** | Distributed processing of large datasets using Apache Spark. |
 | **PySpark** | Large-scale data transformation, cleaning, feature engineering, and machine learning. |
 | **Jupyter Notebook** | Interactive development, EDA, visualization, and experimentation. |
@@ -244,7 +245,10 @@ This makes the dataset suitable for:
 
 - Large-scale distributed data processing
 - Cloud-native architecture on AWS
-- Automated ETL pipelines
+- Automated data ingestion
+- GitHub-hosted runner-based ingestion
+- AWS S3 data lake
+- Automated ETL processing using AWS Glue
 - Data warehouse-ready Gold layer
 - Machine Learning integration
 - Interactive BI dashboards
@@ -255,11 +259,8 @@ This makes the dataset suitable for:
 
 # Architecture Diagram
 
-> **Insert the architecture diagram here.**
 <img width="1600" height="1249" alt="Project_Architecture" src="https://github.com/user-attachments/assets/768f299c-43c5-433f-ad1f-b6bf2062e41c" />
 
-
----PP
 
 ---
 
