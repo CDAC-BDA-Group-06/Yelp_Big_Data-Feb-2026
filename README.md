@@ -237,49 +237,53 @@ This makes the dataset suitable for:
 ---
 
 # Transformations
-        ┌───────────────┐
-        │ Bronze Layer  │
-        │    S3 Raw     │
-        └───────┬───────┘
-                │
-                ▼
-        ┌───────────────┐
-        │   AWS Glue    │
-        │ Silver ETL    │
-        └───────┬───────┘
-                │
-                ▼
- ┌─────────────────────────────┐
- │ Flatten JSON • Clean Nulls  │
- │ Deduplicate • Explode       │
- │ Timestamps • Type Casting   │
- └──────────────┬──────────────┘
-                │
-                ▼
-        ┌───────────────┐
-        │ Silver Layer  │
-        │   S3 Parquet  │
-        └───────┬───────┘
-                │
-                ▼
-        ┌───────────────┐
-        │   AWS Glue    │
-        │  Gold ETL     │
-        └───────┬───────┘
-                │
-                ▼
- ┌─────────────────────────────┐
- │ Joins • Aggregations        │
- │ Day/Hour Features • NLP    │
- │ ML & RAG Feature Engineering│
- └──────────────┬──────────────┘
-                │
-                ▼
-        ┌───────────────┐
-        │  Gold Layer   │
-        │ Analytics/ML  │
-        │     /RAG      │
-        └───────────────┘
+TRANSFORMATIONS
+
+┌───────────────┐
+│ Bronze Layer  │
+│    S3 Raw     │
+└───────┬───────┘
+        │
+        ▼
+┌────────────────────┐
+│     AWS Glue       │
+│    Silver ETL      │
+└────────┬───────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Flatten JSON                │
+│ Clean Nulls & Duplicates    │
+│ Explode Check-in Timestamps │
+│ Parse & Typecast Dates      │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌───────────────┐
+│ Silver Layer  │
+│   S3 Parquet  │
+└───────┬───────┘
+        │
+        ▼
+┌────────────────────┐
+│     AWS Glue       │
+│     Gold ETL       │
+└────────┬───────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Dataset Joins & Aggregation │
+│ Day/Hour Activity Features  │
+│ Review Text Feature Eng.    │
+│ ML & RAG Feature Extraction │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌───────────────┐
+│  Gold Layer   │
+│ Analytics/ML  │
+│     /RAG      │
+└───────────────┘
 
 # Expected Outcomes
 
