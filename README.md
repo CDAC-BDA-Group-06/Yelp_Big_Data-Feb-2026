@@ -238,7 +238,6 @@ This makes the dataset suitable for:
 
 # Transformations
 
-'''text
 ┌───────────────┐
 │ Bronze Layer  │
 │    S3 Raw     │
@@ -284,7 +283,9 @@ This makes the dataset suitable for:
 │ Analytics/ML  │
 │     /RAG      │
 └───────────────┘
+
 ---
+
 # Expected Outcomes
 
 * Centralized cloud-based data lake architecture
