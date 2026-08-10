@@ -11,7 +11,7 @@
 
 # Team Members
 
-* Nagesh Khichade
+* Nagesh Khichade 
 * Saurav Makde
 * Shraddha Patil
 * Mihir Zope
