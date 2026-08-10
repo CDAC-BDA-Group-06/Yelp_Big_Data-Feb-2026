@@ -11,15 +11,15 @@
 
 # Team Members
 
-* Nagesh Khichade 
-* Saurav Makde
-* Shraddha Patil
-* Mihir Zope
-* Maheshwari Phalke
-* Vishal Dewanjee
-* Yogesh Thakre
+* Nagesh -> Problem Statement, Data, Ingestion, CI/CD
+* Maheshwari Phalke -> Bronze to Silver and Silver to Gold Glue Jobs & transformations
+* Vishal Dewanjee -> Machine Learning Flow and Model
+* Yogesh Thakre -> Dashboards Overview and Why Two Dashboards
+* Shraddha Patil -> In-detail Yelp dataset overview
+* Saurav Makde -> In-depth specific business performance overview
+* Mihir Zope -> Interactive UI and Query Engine
 
----
+
 
 # Problem Statement
 
